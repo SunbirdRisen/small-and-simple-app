@@ -9,7 +9,9 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js');
+      navigator.serviceWorker.register('./sw.js').then(reg => {
+        reg.update(); // Auto-checks for new updates on launch
+      });
     }
   </script>
 </head>
@@ -53,16 +55,24 @@
       </div>
     </section>
 
-    <!-- VIEW 2: MORE / HABIT STUDIO (MANAGE, SCHEDULE & REMINDERS) -->
+    <!-- VIEW 2: MORE / HABIT STUDIO (MANAGE, SCHEDULE & ACHIEVEMENTS) -->
     <section id="view-manage" class="hidden space-y-6">
       <div class="flex justify-between items-center border-b border-slate-800 pb-3">
         <div>
-          <h2 class="text-lg font-bold text-slate-100 font-serif">Habit Studio</h2>
-          <p class="text-xs text-slate-400">Set exact notification times & weekly schedules</p>
+          <h2 class="text-lg font-bold text-slate-100 font-serif">Habit Studio & Milestones</h2>
+          <p class="text-xs text-slate-400">Manage schedules, reminders & spiritual badges</p>
         </div>
         <button onclick="requestNotifications()" class="bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold text-xs px-3 py-2 rounded-xl transition">
           🔔 Reminders
         </button>
+      </div>
+
+      <!-- ACHIEVEMENTS & MILESTONES GALLERY -->
+      <div class="space-y-3">
+        <h3 class="text-xs font-semibold text-amber-400 uppercase tracking-wider">Unlocked Milestones</h3>
+        <div id="achievements-gallery" class="grid grid-cols-1 gap-3">
+          <!-- Dynamic JS Insertion for Achievements -->
+        </div>
       </div>
 
       <!-- HABIT TIME & SCHEDULE CARDS -->
@@ -79,7 +89,7 @@
         
         <div>
           <label class="text-[10px] uppercase tracking-wider text-slate-400 block mb-1">Habit Title</label>
-          <input id="new-habit-title" type="text" placeholder="e.g., Sabbath Prep & Reflection" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-sm text-slate-100 focus:border-amber-500 outline-none">
+          <input id="new-habit-title" type="text" placeholder="e.g., Temple Prep Study" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-sm text-slate-100 focus:border-amber-500 outline-none">
         </div>
         
         <div class="grid grid-cols-2 gap-2">
@@ -108,7 +118,7 @@
             <button type="button" onclick="toggleDaySelector(this, 'Fri')" class="day-btn text-xs w-9 h-9 rounded-xl border border-slate-800 bg-slate-950 text-slate-400 font-bold">F</button>
             <button type="button" onclick="toggleDaySelector(this, 'Sat')" class="day-btn text-xs w-9 h-9 rounded-xl border border-slate-800 bg-slate-950 text-slate-400 font-bold">S</button>
           </div>
-          <p class="text-[10px] text-slate-500 mt-1">Leave all unselected for Daily repetition.</p>
+          <p class="text-[10px] text-slate-500 mt-1">Leave unselected for Daily repetition.</p>
         </div>
 
         <button onclick="addCustomHabit()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-amber-400 font-semibold text-xs rounded-xl transition border border-slate-700">
@@ -149,8 +159,8 @@
     ];
 
     const ACHIEVEMENTS = [
-      { id: 'first_step', title: 'First Steps', subtitle: 'Completed your first 3 habits', target: 3, quote: 'By small and simple things are great things brought to pass.', scripture: 'Alma 37:6' },
-      { id: 'week_light', title: 'Seven Days of Light', subtitle: 'Maintained a 7-day devotion streak', target: 7, quote: 'Wherefore, be not weary in well-doing, for ye are laying the foundation of a great work.', scripture: 'D&C 64:33' }
+      { id: 'first_step', title: 'The First Foundation', subtitle: 'Completed 3 total habits', target: 3, quote: 'By small and simple things are great things brought to pass.', scripture: 'Alma 37:6' },
+      { id: 'week_light', title: 'Seven Days of Light', subtitle: 'Maintained a 7-day streak', target: 7, quote: 'Wherefore, be not weary in well-doing, for ye are laying the foundation of a great work.', scripture: 'D&C 64:33' }
     ];
 
     let currentDate = new Date();
@@ -315,6 +325,7 @@
 
     function showMilestoneModal(ach) {
       if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
         const msg = new SpeechSynthesisUtterance(ach.quote);
         msg.pitch = 0.9;
         msg.rate = 0.85;
@@ -373,7 +384,6 @@
       let scheduledHabitsFound = false;
 
       categories.forEach(cat => {
-        // Filter habits matching category AND scheduled day
         const catHabits = state.habits.filter(h => h.category === cat && isHabitScheduledForDate(h, currentDate));
         if (catHabits.length === 0) return;
 
@@ -413,6 +423,28 @@
           </div>
         `;
       }
+
+      // Render Achievements Gallery in More Tab
+      const gallery = document.getElementById('achievements-gallery');
+      gallery.innerHTML = '';
+
+      ACHIEVEMENTS.forEach(ach => {
+        const isUnlocked = state.unlockedAchievements.includes(ach.id);
+        gallery.innerHTML += `
+          <div class="bg-slate-900 border ${isUnlocked ? 'border-amber-500/40 bg-amber-500/5' : 'border-slate-800 opacity-60'} rounded-2xl p-3.5 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <div class="w-10 h-10 rounded-xl flex items-center justify-center ${isUnlocked ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-slate-950 text-slate-600'} text-lg font-bold">
+                ${isUnlocked ? '🏆' : '🔒'}
+              </div>
+              <div>
+                <p class="text-xs font-bold ${isUnlocked ? 'text-amber-400' : 'text-slate-400'}">${ach.title}</p>
+                <p class="text-[10px] text-slate-400">${ach.subtitle}</p>
+              </div>
+            </div>
+            ${isUnlocked ? `<button onclick='showMilestoneModal(${JSON.stringify(ach)})' class="text-[10px] bg-slate-800 hover:bg-slate-700 text-amber-400 px-2.5 py-1.5 rounded-lg border border-slate-700">Listen 🔊</button>` : `<span class="text-[10px] text-slate-600 uppercase tracking-wider font-semibold">Locked</span>`}
+          </div>
+        `;
+      });
 
       // Render Manage / Habit Studio Cards
       const manageList = document.getElementById('manage-habits-list');
