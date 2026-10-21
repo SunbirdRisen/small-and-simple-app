@@ -10,7 +10,7 @@
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./sw.js').then(reg => {
-        reg.update(); // Auto-checks for new updates on launch
+        reg.update();
       });
     }
   </script>
@@ -62,7 +62,7 @@
           <h2 class="text-lg font-bold text-slate-100 font-serif">Habit Studio & Milestones</h2>
           <p class="text-xs text-slate-400">Manage schedules, reminders & spiritual badges</p>
         </div>
-        <button onclick="requestNotifications()" class="bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold text-xs px-3 py-2 rounded-xl transition">
+        <button id="reminder-toggle-btn" onclick="requestNotifications()" class="bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold text-xs px-3 py-2 rounded-xl transition">
           🔔 Reminders
         </button>
       </div>
@@ -276,12 +276,32 @@
     }
 
     async function requestNotifications() {
-      if (!('Notification' in window)) return alert('Notifications not supported on this browser.');
-      const res = await Notification.requestPermission();
-      if (res === 'granted') {
-        state.notificationsEnabled = true;
-        saveState();
-        alert('🔔 Notifications Enabled! Daily & scheduled habit reminders active.');
+      if (!('Notification' in window)) {
+        alert('Notifications are not supported on this device/browser.');
+        return;
+      }
+
+      try {
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+          state.notificationsEnabled = true;
+          saveState();
+
+          // Trigger test notification via Service Worker
+          if ('serviceWorker' in navigator) {
+            const reg = await navigator.serviceWorker.ready;
+            reg.showNotification('Small & Simple Habits', {
+              body: '🔔 Reminders Enabled! Your daily spiritual micro-habit prompts are active.',
+              icon: 'https://cdn-icons-png.flaticon.com/512/3209/3209995.png',
+              vibrate: [200, 100, 200],
+              tag: 'welcome-notification'
+            });
+          }
+        } else {
+          alert('Notification permission was denied in your Android settings. Enable notifications for Chrome/Small & Simple in Android App Info to activate reminders.');
+        }
+      } catch (err) {
+        console.error('Notification error:', err);
       }
     }
 
@@ -376,6 +396,13 @@
       // Update Streak
       document.getElementById('streak-badge').innerText = '🔥 ' + calculateStreak() + ' Day Streak';
 
+      // Update Reminders Button Visual State
+      const remBtn = document.getElementById('reminder-toggle-btn');
+      if (remBtn && Notification.permission === 'granted') {
+        remBtn.className = 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 font-bold text-xs px-3 py-2 rounded-xl';
+        remBtn.innerText = '✅ Reminders Active';
+      }
+
       // Render Habits Filtered by Schedule for Selected Date
       const container = document.getElementById('category-habits-container');
       container.innerHTML = '';
@@ -424,7 +451,7 @@
         `;
       }
 
-      // Render Achievements Gallery in More Tab
+      // Render Achievements Gallery
       const gallery = document.getElementById('achievements-gallery');
       gallery.innerHTML = '';
 
@@ -446,7 +473,7 @@
         `;
       });
 
-      // Render Manage / Habit Studio Cards
+      // Render Manage Cards
       const manageList = document.getElementById('manage-habits-list');
       manageList.innerHTML = '';
 
