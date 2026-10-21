@@ -13,7 +13,7 @@
     }
   </script>
 </head>
-<body class="bg-slate-950 text-slate-100 font-sans min-h-full flex flex-col justify-between pb-20">
+<body class="bg-slate-950 text-slate-100 font-sans min-h-full flex flex-col justify-between pb-24">
 
   <!-- TOP HEADER -->
   <header class="p-5 border-b border-slate-800 bg-slate-900/50 backdrop-blur sticky top-0 z-10 flex justify-between items-center">
@@ -35,43 +35,52 @@
       <p id="daily-quote" class="text-sm font-serif italic text-slate-200">"By small and simple things are great things brought to pass..."</p>
     </div>
 
-    <!-- VIEW 1: DAY AT A GLANCE (HOME) -->
+    <!-- VIEW 1: MAIN HABIT TRACKER & DAY SELECTOR (HOME) -->
     <section id="view-today" class="space-y-4">
-      <div class="flex justify-between items-center mb-2">
-        <h2 class="text-lg font-bold text-slate-100 font-serif">Today at a Glance</h2>
-        <span id="today-date-str" class="text-xs text-slate-400"></span>
+      <!-- DATE NAVIGATION BAR -->
+      <div class="flex items-center justify-between bg-slate-900 border border-slate-800/80 rounded-2xl p-2">
+        <button onclick="changeSelectedDate(-1)" class="p-2 text-slate-400 hover:text-amber-400 font-bold transition">&larr; Prev</button>
+        <div class="text-center">
+          <p id="selected-date-label" class="text-sm font-bold text-slate-100 font-serif">Today</p>
+          <button onclick="resetToToday()" id="today-reset-btn" class="text-[10px] text-amber-400 uppercase font-semibold tracking-wider hidden">Jump to Today</button>
+        </div>
+        <button onclick="changeSelectedDate(1)" class="p-2 text-slate-400 hover:text-amber-400 font-bold transition">Next &rarr;</button>
       </div>
 
-      <div id="today-habits-list" class="space-y-3">
-        <!-- Dynamic JS Insertion for Today's Checklist -->
+      <!-- HABITS BY CATEGORY -->
+      <div id="category-habits-container" class="space-y-6">
+        <!-- Dynamic Category & Habit List Injected Here -->
       </div>
     </section>
 
-    <!-- VIEW 2: MANAGE & REMINDERS (HABIT STUDIO) -->
+    <!-- VIEW 2: MORE / HABIT STUDIO (MANAGE & REMINDERS) -->
     <section id="view-manage" class="hidden space-y-6">
-      <div class="flex justify-between items-center">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
         <div>
-          <h2 class="text-lg font-bold text-slate-100 font-serif">Manage & Reminders</h2>
+          <h2 class="text-lg font-bold text-slate-100 font-serif">Habit Studio & Settings</h2>
           <p class="text-xs text-slate-400">Set exact notification times & customize routines</p>
         </div>
         <button onclick="requestNotifications()" class="bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold text-xs px-3 py-2 rounded-xl transition">
-          🔔 Enable Reminders
+          🔔 Reminders
         </button>
       </div>
 
-      <!-- HABIT EDIT CARDS -->
-      <div id="manage-habits-list" class="space-y-4">
-        <!-- Dynamic JS Insertion for Editing Habit Times & Toggles -->
+      <!-- HABIT TIME & CUSTOMIZATION CARDS -->
+      <div class="space-y-3">
+        <h3 class="text-xs font-semibold text-amber-400 uppercase tracking-wider">Scheduled Target Times</h3>
+        <div id="manage-habits-list" class="space-y-3">
+          <!-- Dynamic JS Insertion for Editing Habit Times -->
+        </div>
       </div>
 
       <!-- ADD CUSTOM HABIT FORM -->
       <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
-        <h3 class="text-sm font-bold text-amber-400">Add New Habit</h3>
+        <h3 class="text-xs font-semibold text-amber-400 uppercase tracking-wider">Add Custom Habit</h3>
         <input id="new-habit-title" type="text" placeholder="e.g., Midday Scripture Reflection" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-sm text-slate-100 focus:border-amber-500 outline-none">
         
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="text-xs text-slate-400">Category</label>
+            <label class="text-[10px] uppercase tracking-wider text-slate-400">Category</label>
             <select id="new-habit-cat" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-slate-100">
               <option value="Prayer">Prayer</option>
               <option value="Scripture Study">Scripture Study</option>
@@ -79,29 +88,32 @@
             </select>
           </div>
           <div>
-            <label class="text-xs text-slate-400">Reminder Time</label>
+            <label class="text-[10px] uppercase tracking-wider text-slate-400">Reminder Time</label>
             <input id="new-habit-time" type="time" value="07:30" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-slate-100">
           </div>
         </div>
 
         <button onclick="addCustomHabit()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-100 font-semibold text-xs rounded-xl transition">
-          + Add Habit
+          + Add Custom Habit
         </button>
       </div>
     </section>
 
   </main>
 
+  <!-- MILESTONE MODAL CONTAINER -->
+  <div id="milestone-modal-container"></div>
+
   <!-- BOTTOM NAVIGATION BAR -->
-  <nav class="fixed bottom-0 left-0 right-0 bg-slate-900/90 backdrop-blur border-t border-slate-800 px-6 py-3 flex justify-around items-center z-20">
+  <nav class="fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur border-t border-slate-800 px-6 py-3 flex justify-around items-center z-20">
     <button onclick="switchTab('today')" id="nav-today" class="flex flex-col items-center text-amber-500 font-medium text-xs space-y-1">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-      <span>Today</span>
+      <span>Tracker</span>
     </button>
     
     <button onclick="switchTab('manage')" id="nav-manage" class="flex flex-col items-center text-slate-400 font-medium text-xs space-y-1">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-      <span>Manage</span>
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+      <span>More</span>
     </button>
   </nav>
 
@@ -115,9 +127,16 @@
       { id: 'sabbath_prep', title: 'Sabbath Preparation', category: 'Sabbath', time: '18:00', deepLink: null }
     ];
 
+    const ACHIEVEMENTS = [
+      { id: 'first_step', title: 'First Steps', subtitle: 'Completed your first 3 habits', target: 3, quote: 'By small and simple things are great things brought to pass.', scripture: 'Alma 37:6' },
+      { id: 'week_light', title: 'Seven Days of Light', subtitle: 'Maintained a 7-day devotion streak', target: 7, quote: 'Wherefore, be not weary in well-doing, for ye are laying the foundation of a great work.', scripture: 'D&C 64:33' }
+    ];
+
+    let currentDate = new Date();
     let state = JSON.parse(localStorage.getItem('ss_app_state')) || {
       habits: DEFAULT_HABITS,
       history: {},
+      unlockedAchievements: [],
       notificationsEnabled: false
     };
 
@@ -126,8 +145,18 @@
       render();
     }
 
-    function getTodayKey() {
-      return new Date().toISOString().split('T')[0];
+    function formatDateKey(dateObj) {
+      return dateObj.toISOString().split('T')[0];
+    }
+
+    function changeSelectedDate(offset) {
+      currentDate.setDate(currentDate.getDate() + offset);
+      render();
+    }
+
+    function resetToToday() {
+      currentDate = new Date();
+      render();
     }
 
     function switchTab(tab) {
@@ -138,11 +167,12 @@
       document.getElementById('nav-manage').className = tab === 'manage' ? 'flex flex-col items-center text-amber-500 font-medium text-xs space-y-1' : 'flex flex-col items-center text-slate-400 font-medium text-xs space-y-1';
     }
 
-    function toggleHabitToday(id) {
-      const today = getTodayKey();
-      if (!state.history[today]) state.history[today] = {};
-      state.history[today][id] = !state.history[today][id];
+    function toggleHabit(id) {
+      const key = formatDateKey(currentDate);
+      if (!state.history[key]) state.history[key] = {};
+      state.history[key][id] = !state.history[key][id];
       saveState();
+      evaluateAchievements();
     }
 
     function updateHabitTime(id, newTime) {
@@ -183,35 +213,128 @@
       if (res === 'granted') {
         state.notificationsEnabled = true;
         saveState();
-        alert('🔔 Notifications Enabled! Reminders will trigger at your exact scheduled habit times.');
+        alert('🔔 Notifications Enabled! Daily habit reminders active.');
       }
     }
 
-    function render() {
-      const today = getTodayKey();
-      document.getElementById('today-date-str').innerText = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    function calculateStreak() {
+      let streak = 0;
+      let checkDate = new Date();
+      
+      for (let i = 0; ; i++) {
+        let d = new Date();
+        d.setDate(checkDate.getDate() - i);
+        let key = formatDateKey(d);
+        
+        const dayRecord = state.history[key];
+        const hasCompleted = dayRecord && Object.values(dayRecord).some(v => v === true);
+        
+        if (hasCompleted) {
+          streak++;
+        } else if (i === 0) {
+          continue; // Allow today to not be logged yet
+        } else {
+          break;
+        }
+      }
+      return streak;
+    }
 
-      // RENDER TODAY AT A GLANCE
-      const todayList = document.getElementById('today-habits-list');
-      todayList.innerHTML = '';
+    function evaluateAchievements() {
+      const totalLogged = Object.values(state.history).reduce((acc, day) => {
+        return acc + Object.values(day).filter(Boolean).length;
+      }, 0);
 
-      state.habits.forEach(h => {
-        const isDone = state.history[today] && state.history[today][h.id];
-        todayList.innerHTML += `
-          <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-4 flex items-center justify-between shadow-sm">
-            <div class="flex items-center space-x-3.5">
-              <input type="checkbox" ${isDone ? 'checked' : ''} onchange="toggleHabitToday('${h.id}')" class="w-5 h-5 accent-amber-500 rounded cursor-pointer">
-              <div>
-                <p class="text-sm font-semibold ${isDone ? 'line-through text-slate-500' : 'text-slate-100'}">${h.title}</p>
-                <span class="text-xs text-amber-400/80 font-medium">⏰ ${h.time} • ${h.category}</span>
-              </div>
+      ACHIEVEMENTS.forEach(ach => {
+        if (state.unlockedAchievements.includes(ach.id)) return;
+        if (totalLogged >= ach.target) {
+          state.unlockedAchievements.push(ach.id);
+          saveState();
+          showMilestoneModal(ach);
+        }
+      });
+    }
+
+    function showMilestoneModal(ach) {
+      if ('speechSynthesis' in window) {
+        const msg = new SpeechSynthesisUtterance(ach.quote);
+        msg.pitch = 0.9;
+        msg.rate = 0.85;
+        window.speechSynthesis.speak(msg);
+      }
+
+      document.getElementById('milestone-modal-container').innerHTML = `
+        <div class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur flex items-center justify-center p-4">
+          <div class="max-w-md w-full bg-slate-900 border border-amber-500/30 rounded-2xl p-6 text-center shadow-2xl">
+            <p class="text-xs uppercase tracking-widest text-amber-400 font-semibold mb-2">Milestone Unlocked</p>
+            <h2 class="text-2xl font-serif text-slate-100 font-bold mb-1">${ach.title}</h2>
+            <p class="text-sm text-slate-400 mb-6">${ach.subtitle}</p>
+            <div class="my-6 py-4 px-6 bg-slate-950/50 border-l-2 border-amber-500 text-left rounded-r-lg">
+              <p class="text-lg font-serif italic text-slate-200">"${ach.quote}"</p>
+              <p class="text-xs text-amber-400/80 mt-2">— ${ach.scripture}</p>
             </div>
-            ${h.deepLink ? `<a href="${h.deepLink}" class="bg-slate-800 hover:bg-slate-700 text-amber-400 text-xs px-3 py-1.5 rounded-lg border border-slate-700 font-medium">Library 📖</a>` : ''}
+            <button onclick="closeModal()" class="w-full py-3 bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold rounded-xl shadow-lg">Continue Devotion</button>
           </div>
+        </div>
+      `;
+    }
+
+    function closeModal() {
+      document.getElementById('milestone-modal-container').innerHTML = '';
+    }
+
+    function render() {
+      const dateKey = formatDateKey(currentDate);
+      const todayKey = formatDateKey(new Date());
+
+      // Update Date Header Label
+      const isToday = dateKey === todayKey;
+      document.getElementById('selected-date-label').innerText = isToday 
+        ? 'Today (' + currentDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ')' 
+        : currentDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+      
+      document.getElementById('today-reset-btn').classList.toggle('hidden', isToday);
+
+      // Update Streak
+      document.getElementById('streak-badge').innerText = '🔥 ' + calculateStreak() + ' Day Streak';
+
+      // Render Habits grouped by Category
+      const container = document.getElementById('category-habits-container');
+      container.innerHTML = '';
+
+      const categories = ['Prayer', 'Scripture Study', 'Sabbath'];
+
+      categories.forEach(cat => {
+        const catHabits = state.habits.filter(h => h.category === cat);
+        if (catHabits.length === 0) return;
+
+        let html = `
+          <div class="space-y-3">
+            <h3 class="text-xs font-semibold text-amber-400 uppercase tracking-widest px-1">${cat}</h3>
+            <div class="space-y-2.5">
         `;
+
+        catHabits.forEach(h => {
+          const isDone = state.history[dateKey] && state.history[dateKey][h.id];
+          html += `
+            <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-4 flex items-center justify-between shadow-sm">
+              <div class="flex items-center space-x-3.5">
+                <input type="checkbox" ${isDone ? 'checked' : ''} onchange="toggleHabit('${h.id}')" class="w-5 h-5 accent-amber-500 rounded cursor-pointer">
+                <div>
+                  <p class="text-sm font-semibold ${isDone ? 'line-through text-slate-500' : 'text-slate-100'}">${h.title}</p>
+                  <span class="text-xs text-slate-400">⏰ Target: ${h.time}</span>
+                </div>
+              </div>
+              ${h.deepLink ? `<a href="${h.deepLink}" class="bg-slate-800 hover:bg-slate-700 text-amber-400 text-xs px-3 py-1.5 rounded-lg border border-slate-700 font-medium">Library 📖</a>` : ''}
+            </div>
+          `;
+        });
+
+        html += `</div></div>`;
+        container.innerHTML += html;
       });
 
-      // RENDER MANAGE & REMINDERS
+      // Render Manage Tab Items
       const manageList = document.getElementById('manage-habits-list');
       manageList.innerHTML = '';
 
@@ -224,7 +347,7 @@
             </div>
             <div class="flex items-center space-x-2">
               <input type="time" value="${h.time}" onchange="updateHabitTime('${h.id}', this.value)" class="bg-slate-950 border border-slate-800 rounded-lg p-1.5 text-xs text-amber-400 outline-none">
-              <button onclick="deleteHabit('${h.id}')" class="text-xs text-rose-400 hover:text-rose-300 px-2 py-1">Delete</button>
+              <button onclick="deleteHabit('${h.id}')" class="text-xs text-rose-400 hover:text-rose-300 px-2 py-1 font-medium">Delete</button>
             </div>
           </div>
         `;
