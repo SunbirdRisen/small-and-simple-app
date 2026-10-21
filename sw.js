@@ -1,12 +1,9 @@
-const CACHE_NAME = 'small-simple-v5';
-const STATIC_ASSETS = ['./manifest.json'];
+const CACHE_NAME = 'small-simple-v6';
 
-// Install & skip waiting immediately
 self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-// Activate & claim clients across all tabs
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
@@ -19,7 +16,7 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Network-First Strategy for index.html (Auto-updates without manual cache clearing)
+// NETWORK-FIRST FOR PAGE NAVIGATION (Auto-updates index.html)
 self.addEventListener('fetch', (event) => {
   if (event.request.mode === 'navigate') {
     event.respondWith(
@@ -37,5 +34,18 @@ self.addEventListener('fetch', (event) => {
 
   event.respondWith(
     caches.match(event.request).then((cached) => cached || fetch(event.request))
+  );
+});
+
+// NATIVE NOTIFICATION EVENT HANDLER
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(
+    clients.matchAll({ type: 'window' }).then((clientList) => {
+      for (const client of clientList) {
+        if (client.url === '/' && 'focus' in client) return client.focus();
+      }
+      if (clients.openWindow) return clients.openWindow('./');
+    })
   );
 });
